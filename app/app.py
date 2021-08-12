@@ -1,9 +1,9 @@
-# Pytorch  stuff 
+# Pytorch  stuff
 import torchvision.transforms as transforms
 import torch
 import torch.nn as nn
 import torchvision.models as models
-# PIL library for images 
+# PIL library for images
 from PIL import Image
 
 from flask import Flask,redirect,url_for, render_template, request,session
@@ -28,8 +28,8 @@ ABELS_ARRAY=2
 LABELS_ARRAY=["HOTDOG","NOT HOTDOG"]
 
 
-project_name="HOTDOG OR  NOT HOTDOG "
-application_name="HOTDOG OR  NOT HOTDOG "
+project_name="HOTDOG OR NOT HOTDOG "
+application_name="HOTDOG OR NOT HOTDOG "
 
 model = models.resnet18(pretrained=True)
 model.fc = nn.Linear(512, len(LABELS_ARRAY))
@@ -44,7 +44,7 @@ my_transforms= transforms.Compose([transforms.Resize((224, 224))
 
 @app.route("/")
 def home():
-    
+
     return render_template("index.html", flag=False,
         application_name=application_name, project_name=project_name)
 
@@ -58,19 +58,15 @@ def upload():
     if uploaded_file.filename != '':
         data = io.BytesIO(uploaded_file.read())
         image = Image.open(data).convert('RGB')
-    
+
         tensor = my_transforms(image).unsqueeze(0)
-        z=model(tensor)
+        z = model(tensor)
         _,yhat=torch.max(z.data, 1)
 
         predicted = "Deep network prediction: " + LABELS_ARRAY[yhat]
 
         img = str(base64.b64encode(data.getvalue()))[2:-1]
-    
-    
-
-    return render_template("index.html",image_class=predicted, img=img, flag=True,
-        application_name=application_name, project_name=project_name)
+    return render_template("index.html",image_class=predicted, img=img, flag=True, application_name=application_name, project_name=project_name)
 
 
 PORT  = os.environ.get('PORT') or 8080
