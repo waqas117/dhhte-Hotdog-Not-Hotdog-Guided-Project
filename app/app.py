@@ -66,7 +66,7 @@ def upload():
         predicted = "Deep network prediction: " + LABELS_ARRAY[yhat]
 
         img = str(base64.b64encode(data.getvalue()))[2:-1]
-    return render_template("index.html",image_class=predicted, img=img, flag=True, project_description=project_description, project_name=project_name)
+    return render_template("index.html",predicted=predicted, img=img, flag=True, project_description=project_description, project_name=project_name)
 
 
 PORT  = os.environ.get('PORT') or 8080
