@@ -3,8 +3,8 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css')}}">
 <html>
   <div class="container pt-5">
-    <div class="row">
-      <div class="col-sm-12 text-center text-white" class="instructions">
+    <div class="row" style="display: flex;flex-direction: column;align-items: center;">
+      <div class="col-sm-12 text-center text-white" class="instructions" style="max-width: 55%;">
        <h1>{{project_name}}</h1>
       <h5>{{project_description}}</h5>
       </div>
@@ -12,7 +12,7 @@
     <div class="spacer10"></div>
     <div class="row">
       <div class="col-sm-12 text-center text-white" class="instructions">
-        <h4 class="pt-3">Drag & Drop an Image Here</h4>
+        <h4 class="pt-4">Drag & Drop an Image Here</h4>
         <h6>Please only drag and drop one image at a time.</h6>
       </div>
     </div>
