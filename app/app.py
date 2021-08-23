@@ -1,78 +1,72 @@
-# Pytorch  stuff
-import torchvision.transforms as transforms
-import torch
-import torch.nn as nn
-import torchvision.models as models
-# PIL library for images
-from PIL import Image
+"""
+An web application for a hotdog image classifier.
 
-from flask import Flask,redirect,url_for, render_template, request,session
-import os.path
-import tempfile
-import io
+@author: Weiqing Wang <Weiqing.Wang@ibm.com>, Kathy An <Kathy.An@ibm.com>
+"""
+
 import os
-import base64
-import logging
+from io import BytesIO
+
+from flask import Flask, render_template, request
+
+from config import config
+from hotdogclassifier import HotDogClassifier
+
+# create a Flask app
+app = Flask(__name__)
+
+# load the pre-trained model
+model = HotDogClassifier()
+model.load_model(config["model_weight"])
 
 
-dir_path = os.path.dirname(os.path.realpath(__file__))
-
-app=Flask(__name__)
-
-
-public=True
-
-
-ABELS_ARRAY=2
-
-LABELS_ARRAY=["HOTDOG","NOT HOTDOG"]
-
-
-project_name="HOTDOG OR NOT HOTDOG "
-project_description="HOTDOG OR NOT HOTDOG "
-
-model = models.resnet18(pretrained=True)
-model.fc = nn.Linear(512, len(LABELS_ARRAY))
-model.load_state_dict(torch.load(os.path.join(dir_path,"hotdog_detector.pt")))
-model.eval()
-mean = [0.485, 0.456, 0.406]
-std = [0.229, 0.224, 0.225]
-
-my_transforms= transforms.Compose([transforms.Resize((224, 224))
-                                ,transforms.ToTensor()
-                                , transforms.Normalize(mean, std)])
-
-@app.route("/")
+@app.route("/", methods=["GET"])
 def home():
+    """
+    This function handles the GET requests for end-point `/`.
 
-    return render_template("index.html", flag=False,
-        project_description=project_description, project_name=project_name)
-
-@app.route('/', methods=['GET', 'POST'])
-def upload():
-
-    uploaded_file = request.files['files']
-
-    predicted = ""
-    img = ""
-    if uploaded_file.filename != '':
-        data = io.BytesIO(uploaded_file.read())
-        image = Image.open(data).convert('RGB')
-
-        tensor = my_transforms(image).unsqueeze(0)
-        z = model(tensor)
-        _,yhat=torch.max(z.data, 1)
-
-        predicted = "Deep network prediction: " + LABELS_ARRAY[yhat]
-
-        img = str(base64.b64encode(data.getvalue()))[2:-1]
-    return render_template("index.html",predicted=predicted, img=img, flag=True, project_description=project_description, project_name=project_name)
+    In simple terms, this function handles what the app will do when you open the
+    app in the browser. Naturally, it will return the home page of our webapp.
+    """
+    # Return the home page of our web app.
+    return render_template("index.html",
+                           flag=False,
+                           project_description=config["project_description"],
+                           project_name=config["project_name"])
 
 
-PORT  = os.environ.get('PORT') or 8080
-DEBUG = os.environ.get('DEBUG') != 'TRUE'
+@app.route("/", methods=["POST"])
+def classify():
+    """
+    This function handles the POST requests for end-point `/`.
+
+    In design of our front-end (html), this endpoint is called whenever a successful
+    upload of an image is made. This function will return a page with the image and
+    the model's prediction.
+    """
+    # Extract uploaded the file from the request.
+    uploaded_file = request.files["files"]
+    # Convert the extracted file into a series of bytes for further processing.
+    data = BytesIO(uploaded_file.read())
+    # Assess if an empty file was uploaded.
+    if uploaded_file.filename != "":
+        # Let our model make the prediction.
+        img, predicted = model.predict(data)
+    else:
+        # No prediction could be made.
+        predicted, img = "", ""
+    # return the rendered home page with response.
+    return render_template("index.html",
+                           predicted=predicted,
+                           img=img,
+                           flag=True,
+                           project_description=config["project_description"],
+                           project_name=config["project_name"])
+
+
+# ----------------- You do NOT need to understand what the code below does. -------------------- #
 
 if __name__ == '__main__':
-    app.jinja_env.auto_reload = True
-    app.config['TEMPLATES_AUTO_RELOAD'] = True
+    PORT = os.environ.get('PORT') or 8080
+    DEBUG = os.environ.get('DEBUG') != 'TRUE'
     app.run(host='0.0.0.0', port=PORT, debug=DEBUG)
