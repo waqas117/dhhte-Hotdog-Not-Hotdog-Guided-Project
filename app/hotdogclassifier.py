@@ -26,7 +26,7 @@ class HotDogClassifier:
     """
 
     # The classes images being classified into.
-    labels_array = ["IS A HOTDOG", "IS NOT A HOTDOG"]
+    labels_array = ["HOTDOG", "NOT HOTDOG"]
     # Define the transformation of the pictures to feed into our model.
     mean = [0.485, 0.456, 0.406]
     std = [0.229, 0.224, 0.225]
